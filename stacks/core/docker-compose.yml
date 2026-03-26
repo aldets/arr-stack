@@ -1,0 +1,62 @@
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    user: "${PUID}:${PGID}"
+    ports:
+      - "8096:8096"
+    volumes:
+      - ${CONFIG_PATH}/jellyfin/config:/config
+      - ${CONFIG_PATH}/jellyfin/cache:/cache
+      - ${MEDIA_PATH}/media:/media
+    devices:
+      - /dev/dri:/dev/dri
+    restart: unless-stopped
+    networks:
+      - arr-network
+    
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${CONFIG_PATH}/portainer/data:/data
+    restart: unless-stopped
+
+  qbittorrent:
+    image: linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ:-UTC}
+      - WEBUI_PORT=8080
+    volumes:
+      - ${CONFIG_PATH}/qbittorrent/config:/config
+      - ${MEDIA_PATH}/downloads:/downloads
+    ports:
+      - "8080:8080"
+      - "6881:6881"
+      - "6881:6881/udp"
+    restart: unless-stopped
+    networks:
+      - arr-network
+
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: aldmar-dozzle
+    restart: always
+    ports:
+      - "8081:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - arr-network
+
+networks:
+  arr-network:
+    external: true

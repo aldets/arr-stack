@@ -1,0 +1,127 @@
+services:
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: arr-prowlarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ${CONFIG_PATH}/prowlarr/config:/config
+    ports:
+      - "9696:9696"
+    restart: unless-stopped
+    networks:
+      - arr-network
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: arr-radarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ${CONFIG_PATH}/radarr/config:/config
+      - ${MEDIA_PATH}:/data
+    ports:
+      - "7878:7878"
+    restart: unless-stopped
+    networks:
+      - arr-network
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: arr-sonarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ${CONFIG_PATH}/sonarr/config:/config
+      - ${MEDIA_PATH}:/data
+    ports:
+      - "8989:8989"
+    restart: unless-stopped
+    networks:
+      - arr-network
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: arr-bazarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ${CONFIG_PATH}/bazarr/config:/config
+      - ${MEDIA_PATH}/media:/media
+    ports:
+      - "6767:6767"
+    restart: unless-stopped
+    networks:
+      - arr-network
+  
+  cleanuparr:
+    image: ghcr.io/cleanuparr/cleanuparr:latest
+    container_name: arr-cleanuparr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ:-UTC}
+      - LOG_LEVEL=info
+    volumes:
+      - ${CONFIG_PATH}/cleanuparr/config:/config
+      - ${MEDIA_PATH}/downloads:/downloads
+      - ${MEDIA_PATH}/media:/media
+    ports:
+      - "11011:11011"
+    restart: unless-stopped
+    networks:
+      - arr-network
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: arr-flaresolverr
+    environment:
+      - LOG_LEVEL=info
+      - TZ=${TZ:-UTC}
+    ports:
+      - "8191:8191"
+    restart: unless-stopped
+    networks:
+      - arr-network
+    
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    container_name: arr-seerr
+    init: true
+    environment:
+      - LOG_LEVEL=info
+      - TZ=${TZ:-UTC}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ${CONFIG_PATH}/seerr/config:/app/config
+    ports:
+      - "5055:5055"
+    restart: unless-stopped
+    networks:
+      - arr-network
+
+  maintainerr:
+    image: ghcr.io/maintainerr/maintainerr:latest
+    container_name: arr-maintainerr
+    environment:
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ${CONFIG_PATH}/maintainerr/config:/opt/maintainerr/config
+    ports:
+      - "6246:6246"
+    restart: unless-stopped
+    networks:
+      - arr-network
+
+networks:
+  arr-network:
+    external: true
