@@ -56,6 +56,39 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - arr-network
+  
+  jellystat-db:
+    image: postgres:15-alpine
+    container_name: jellystat-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: jfstat
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${JELLYSTAT_DB_PASSWORD}
+    volumes:
+      - ${CONFIG_PATH}/jellystat/db:/var/lib/postgresql/data
+    networks:
+      - arr-network
+
+  jellystat:
+    image: cyfershepard/jellystat:latest
+    container_name: jfstat
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${JELLYSTAT_DB_PASSWORD}
+      - POSTGRES_IP=jellystat-db
+      - POSTGRES_PORT=5432
+      - JWT_SECRET=${JELLYSTAT_JWT_SECRET}
+      - TZ=${TZ:-Europe/Tallinn}
+    volumes:
+      - ${CONFIG_PATH}/jellystat/backups:/app/backend/backup-data
+    depends_on:
+      - jellystat-db
+    networks:
+      - arr-network
 
 networks:
   arr-network:
